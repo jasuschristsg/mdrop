@@ -1,5 +1,9 @@
 # MDrop
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)
+![Python](https://img.shields.io/badge/python-3-blue)
+
 A macOS Dock app: drag one or more PDFs onto the icon, get a Markdown file
 per PDF, saved next to the source. No window, no import step, no manual
 restart between drops.
@@ -9,6 +13,14 @@ OCR for scanned/image-only pages, inserting the OCR text at the correct page
 position.
 
 Runs fully offline. No uploads, no API calls, no subscription.
+
+## Features
+
+- Drop one or more PDFs on the Dock icon, get a `.md` file per PDF
+- Native text extraction, with automatic OCR fallback per page
+- Multi-file drops handled in one pass, no restart needed
+- macOS notification on completion
+- 100% offline, no accounts, no cost
 
 ## Requirements
 
