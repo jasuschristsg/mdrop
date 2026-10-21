@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MDrop: PDF to Markdown from your Dock</title>
+<meta name="description" content="A macOS Dock app. Drop a PDF on the icon, get a Markdown file next to it. OCR fallback for scans. Fully offline.">
+<meta property="og:title" content="MDrop: Drop a PDF. Get Markdown.">
+<meta property="og:description" content="A macOS Dock app. No window, no uploads, no subscription.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23c2410c'/%3E%3Cpath d='M7 22V10l5 6 5-6v12M21 10v9m0 0-3-3m3 3 3-3' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#fbfaf8; --fg:#1c1b19; --muted:#6b6862; --line:#e4e1db; --card:#ffffff;
+  --code:#f3f1ec; --accent:#c2410c; --accent-fg:#fff; --ok:#2b8a3e;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141311; --fg:#efede8; --muted:#9a968e; --line:#2c2a26; --card:#1b1a17;
+    --code:#1f1d1a; --accent:#ff8a4c; --accent-fg:#141311; --ok:#69db7c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141311; --fg:#efede8; --muted:#9a968e; --line:#2c2a26; --card:#1b1a17;
+  --code:#1f1d1a; --accent:#ff8a4c; --accent-fg:#141311; --ok:#69db7c;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+::selection{background:color-mix(in srgb,var(--accent) 28%,transparent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+p,li{text-wrap:pretty}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.logo{font:600 17px var(--mono);text-decoration:none;letter-spacing:-.02em;padding:8px 0}
+.logo b{color:var(--accent)}
+nav a{font-size:14px;color:var(--muted);text-decoration:none;margin-left:12px;padding:10px 6px;display:inline-block}
+nav a:hover{color:var(--fg)}
+.hero{padding:40px 0 40px;display:grid;gap:40px;grid-template-columns:1.1fr .9fr;align-items:center}
+.hero>*{min-width:0}
+h1{font-size:clamp(36px,6vw,58px);line-height:1.05;letter-spacing:-.035em;margin:0 0 18px;font-weight:700;text-wrap:balance}
+h1 em{font-style:normal;color:var(--accent)}
+.lede{font-size:18px;color:var(--muted);max-width:34em;margin:0 0 28px}
+.cmd{display:flex;align-items:flex-start;gap:10px;background:var(--code);border:1px solid var(--line);border-radius:10px;padding:12px 10px 12px 14px;font:14px/1.6 var(--mono);max-width:100%}
+.cmd code{flex:1;min-width:0;white-space:pre-wrap;overflow-wrap:break-word}
+.cmd .p{color:var(--muted);user-select:none}
+button.copy{font:500 13px var(--sans);border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:7px;padding:8px 14px;cursor:pointer;min-height:36px}
+button.copy:hover{border-color:var(--accent)}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.btn{display:inline-block;padding:10px 18px;border-radius:9px;font-weight:600;font-size:15px;text-decoration:none;background:var(--accent);color:var(--accent-fg)}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn:hover{filter:brightness(1.07)}
+.meta{font-size:14px;color:var(--muted);margin:12px 0 0}
+
+/* hero: a PDF becomes a .md file */
+.stage{position:relative;height:320px;container-type:inline-size;border:1px solid var(--line);border-radius:18px;background:
+  linear-gradient(180deg,transparent 60%,color-mix(in srgb,var(--accent) 7%,transparent)),var(--card);overflow:hidden;--out:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+@supports (animation-timing-function:linear(0,1)){.stage{--spring:linear(0, 0.088, 0.3, 0.561, 0.813, 1.016, 1.153, 1.221, 1.232, 1.2, 1.145, 1.084, 1.028, 0.985, 0.958, 0.946, 0.947, 0.957, 0.97, 0.985, 0.997, 1.006, 1.011, 1.013, 1.012, 1.009, 1.006, 1.003, 1)}}
+.page{position:absolute;top:24px;left:20px;width:112px;height:148px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#6b6862;padding:14px 12px;display:flex;flex-direction:column;gap:7px}
+.page b{display:block;height:7px;border-radius:4px;background:#e4e1db}
+.page b.h{height:10px;width:60%;background:#6b6862}
+.page b.s{width:75%}
+.page small{margin-top:auto;font:11px var(--mono)}
+.fly{position:absolute;top:24px;left:20px;width:112px;height:148px;animation:flyx 6s infinite}
+.fly .page{top:0;left:0}
+.ghost{opacity:0;box-shadow:0 10px 24px rgba(0,0,0,.18);animation:flyy 6s infinite}
+.out{position:absolute;top:24px;right:20px;width:172px;height:148px;border-radius:8px;border:1px solid var(--line);background:var(--code);padding:14px 10px;font:11px/1.65 var(--mono);color:var(--fg);animation:outin 6s infinite}
+.out .l{display:block;white-space:pre;animation:wipe 6s infinite backwards}
+.out .l:nth-child(2){animation-delay:.12s}.out .l:nth-child(3){animation-delay:.24s}.out .l:nth-child(4){animation-delay:.36s}
+.out .c{color:var(--muted)}
+.note{position:absolute;right:20px;top:182px;width:172px;font-size:11px;line-height:1.35;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:9px;animation:note 6s infinite}
+.note b{display:block;font-weight:600}
+.dock{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;padding:9px 12px;border-radius:18px;background:color-mix(in srgb,var(--fg) 7%,var(--card));border:1px solid var(--line)}
+.dock i{width:42px;height:42px;border-radius:10px;background:var(--line);display:block}
+.dock i.me{background:var(--accent);display:grid;place-items:center;color:var(--accent-fg);font:700 15px var(--mono);animation:hop 6s infinite}
+.stage.paused *,.stage.off *{animation-play-state:paused!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.stagebar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:10px}
+.hint{margin:0;font-size:14px;color:var(--muted)}
+.pause{min-height:32px;padding:5px 12px;flex:none}
+.src{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;z-index:3}
+.src.dragging{cursor:grabbing;z-index:6;box-shadow:0 18px 30px rgba(0,0,0,.22)}
+/* manual mode: the visitor drives it. The result replays the loop from 1.3s, then rests. */
+.stage.manual .fly{display:none}
+.stage.manual .out,.stage.manual .out .l,.stage.manual .note,.stage.manual .dock i.me{animation:none}
+.stage.manual .out,.stage.manual .note{opacity:0}
+.stage.manual .dock i.me{transition:transform .22s var(--out)}
+.stage.manual .dock i.me.over{transform:scale(1.18)}
+.stage.manual.play .out{animation:outin 6s -1.3s 1 both}
+.stage.manual.play .out .l{animation:wipe 6s 1 both}
+.stage.manual.play .out .l:nth-child(1){animation-delay:-1.3s}.stage.manual.play .out .l:nth-child(2){animation-delay:-1.18s}.stage.manual.play .out .l:nth-child(3){animation-delay:-1.06s}.stage.manual.play .out .l:nth-child(4){animation-delay:-.94s}
+.stage.manual.play .note{animation:note 6s -1.3s 1 both}
+.stage.manual.play .dock i.me{animation:hop 6s -1.3s 1 both}
+.stage.manual.done .out,.stage.manual.done .out .l,.stage.manual.done .note,.stage.manual.done .dock i.me{animation:none}
+.stage.manual.done .out,.stage.manual.done .note{opacity:1}
+/* 6s loop. Beats: lift 0.5s, travel 0.75s, absorb 1.45s, spring 1.5s, wipe 1.9s, notify 2.6s, hold, fade 5.4s */
+@keyframes flyx{0%,12.5%{transform:translateX(0);animation-timing-function:cubic-bezier(.25,.6,.2,1)}24.2%,100%{transform:translateX(calc(50cqw - 76px))}}
+@keyframes flyy{
+  0%,8.3%{opacity:0;transform:none}
+  9%{opacity:1;transform:none;animation-timing-function:var(--out)}
+  12.5%{opacity:1;transform:translateY(-8px) scale(1.06) rotate(-3deg);box-shadow:0 18px 30px rgba(0,0,0,.22);animation-timing-function:cubic-bezier(.55,0,.85,.35)}
+  24.2%{opacity:1;transform:translateY(174px) scale(.3) rotate(2deg);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+  25.8%,100%{opacity:0;transform:translateY(174px) scale(.2) rotate(2deg)}
+}
+@keyframes hop{
+  0%,15%{transform:none;animation-timing-function:var(--out)}
+  21%{transform:scale(1.14);animation-timing-function:cubic-bezier(.55,0,.85,.35)}
+  24.2%{transform:scale(1.2,.82);animation-timing-function:var(--out)}
+  27.5%{transform:translateY(-16px) scale(.94,1.08);animation-timing-function:var(--spring)}
+  36%,100%{transform:none}
+}
+@keyframes outin{0%,28%{opacity:0;transform:translateY(10px) scale(.94);animation-timing-function:var(--spring)}36%,88%{opacity:1;transform:none}93%,100%{opacity:0;transform:none}}
+@keyframes wipe{0%,31.7%{clip-path:inset(0 100% 0 0);animation-timing-function:var(--out)}36%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes note{0%,43%{opacity:0;transform:translateY(-8px) scale(.96);animation-timing-function:var(--spring)}50%,88%{opacity:1;transform:none}92%,100%{opacity:0;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .fly,.pause{display:none}
+  .out,.out .l,.note,.dock i.me,.stage.manual.play .out,.stage.manual.play .out .l,.stage.manual.play .note,.stage.manual.play .dock i.me{animation:none}
+  .stage.manual.play .out,.stage.manual.play .note{opacity:1}
+}
+
+section{padding:56px 0;border-top:1px solid var(--line)}
+h2{font-size:28px;letter-spacing:-.025em;margin:0 0 8px}
+.sub{color:var(--muted);margin:0 0 28px;max-width:38em}
+.sub a{color:var(--fg)}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(3,1fr)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3{margin:0 0 6px;font-size:16px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.num{font:600 13px var(--mono);color:var(--accent);margin-bottom:10px;display:block}
+.grid.four{grid-template-columns:repeat(4,1fr)}
+.pair{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+.pair>div{display:flex;flex-direction:column;min-width:0}
+pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:14px;padding:18px;font:13px/1.65 var(--mono);overflow-x:auto;white-space:pre}
+.pair pre{flex:1}
+.lab{font:600 13px var(--mono);color:var(--muted);margin-bottom:8px}
+.c{color:var(--muted)}
+.hl{color:var(--accent)}
+ol.steps{padding-left:20px;margin:0 0 20px;max-width:42em}
+ol.steps li{margin:6px 0}
+ul.lim{margin:0;padding-left:20px;color:var(--muted)}
+ul.lim li{margin:6px 0}
+footer{padding:36px 0 56px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{text-decoration:none;border-bottom:1px solid var(--line);display:inline-block;padding:6px 0}
+footer a:hover{color:var(--fg)}
+.sk{position:absolute;left:-9999px}
+.sk:focus{left:12px;top:12px;background:var(--card);padding:8px 12px;border-radius:8px;z-index:9}
+
+@media (max-width:820px){
+  .hero{grid-template-columns:1fr;padding-top:16px}
+  .grid,.grid.four,.pair{grid-template-columns:1fr}
+  nav a:not(.gh):not(.in){display:none}
+}
+</style>
+</head>
+<body>
+<a class="sk" href="#main">Skip to content</a>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#"><b>M</b>Drop</a>
+    <nav>
+      <a href="#how">How it works</a>
+      <a class="in" href="#install">Install</a>
+      <a href="#limits">Limits</a>
+      <a class="gh" href="https://github.com/jasuschristsg/mdrop">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="hero">
+      <div>
+        <h1>Drop a PDF.<br>Get <em>Markdown.</em></h1>
+        <p class="lede">A macOS Dock app. Drag one or more PDFs onto the icon and a <code>.md</code> file lands next to each one. No window, no uploads, no subscription.</p>
+        <div class="cmd" role="group" aria-label="Install command">
+          <span class="p">$</span>
+          <code id="cmd">git clone https://github.com/jasuschristsg/mdrop.git
+cd mdrop &amp;&amp; ./install.sh</code>
+          <button class="copy" id="copy" type="button">Copy</button>
+        </div>
+        <p class="meta">Needs macOS, Homebrew and Python 3. <a href="#install">What the installer does</a></p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/jasuschristsg/mdrop">View on GitHub</a>
+          <a class="btn alt" href="#how">How it works</a>
+        </div>
+      </div>
+      <div>
+        <div class="stage" id="stage" role="group" aria-label="Interactive demo: drag report.pdf onto the MDrop Dock icon">
+          <div class="page src" id="pdf" role="button" tabindex="0" aria-label="report.pdf. Drag it onto the MDrop Dock icon, or press Enter to convert it"><b class="h"></b><b></b><b></b><b class="s"></b><b></b><small>report.pdf</small></div>
+          <div class="fly" aria-hidden="true"><div class="page ghost"><b class="h"></b><b></b><b></b><b class="s"></b><b></b></div></div>
+          <div class="out"><span class="l"># report</span><span class="l c">&lt;!-- page 1 (text) --&gt;</span><span class="l">Q3 Summary</span><span class="l">Revenue grew 12%</span></div>
+          <div class="note"><b>MDrop</b>Conversion complete</div>
+          <div class="dock"><i></i><i></i><i class="me">M</i><i></i><i></i></div>
+        </div>
+        <p class="sr" id="status" role="status"></p>
+        <div class="stagebar"><p class="hint">Try it: drag the PDF onto the icon.</p><button class="copy pause" id="pause" type="button" aria-pressed="false">Pause animation</button></div>
+      </div>
+    </div>
+
+    <section id="how">
+      <h2>How it works</h2>
+      <p class="sub">One script, run once for each PDF you drop.</p>
+      <div class="grid">
+        <div class="card"><span class="num">01</span><h3>Drop</h3><p>Drag one or more PDFs onto the Dock icon. Multi-file drops run in one pass, no restart between them.</p></div>
+        <div class="card"><span class="num">02</span><h3>Extract</h3><p>Pages with a text layer use native extraction. Pages with almost no text are treated as scans and run through OCR.</p></div>
+        <div class="card"><span class="num">03</span><h3>Done</h3><p>A <code>.md</code> file with the same name is saved beside each PDF, and a macOS notification confirms it.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Why it's built this way</h2>
+      <p class="sub">A small tool that stays out of the way.</p>
+      <div class="grid four">
+        <div class="card"><h3>Offline</h3><p>Nothing leaves your Mac. No API calls.</p></div>
+        <div class="card"><h3>Windowless</h3><p>No app UI, no import step. Just the Dock icon.</p></div>
+        <div class="card"><h3>Per-page OCR</h3><p>Mixed PDFs work. OCR text is inserted at the right page position.</p></div>
+        <div class="card"><h3>Free</h3><p>No accounts, no subscription, MIT license.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>The output</h2>
+      <p class="sub">Each page is marked with an HTML comment saying whether it came from native text or OCR, so you can spot pages worth double-checking.</p>
+      <div class="pair">
+        <div><div class="lab">report.pdf</div>
+<pre><span class="c">Page 1 (text layer)</span>
+Q3 Summary
+Revenue grew 12% year on year.
+
+<span class="c">Page 2 (scanned image)</span>
+[photo of a signed page]</pre></div>
+        <div><div class="lab">report.md</div>
+<pre># report
+
+<span class="hl">&lt;!-- page 1 (text) --&gt;</span>
+
+Q3 Summary
+Revenue grew 12% year on year.
+
+<span class="hl">&lt;!-- page 2 (ocr) --&gt;</span>
+
+Signed by the board on 14 March.</pre></div>
+      </div>
+    </section>
+
+    <section id="install">
+      <h2>Install</h2>
+      <p class="sub">Needs macOS, <a href="https://brew.sh">Homebrew</a> and Python 3. Run the command at the top of this page. The installer, <a href="https://github.com/jasuschristsg/mdrop/blob/main/install.sh">install.sh</a>, does this and nothing else:</p>
+      <ol class="steps">
+        <li>Installs Tesseract with Homebrew, if it is missing.</li>
+        <li>Installs <code>pymupdf</code>, <code>pytesseract</code> and <code>pillow</code> with pip, for your user only.</li>
+        <li>Copies <code>mdrop.py</code> to <code>~/Applications/MDrop/</code> and builds <code>~/Applications/MDrop.app</code> on your Mac.</li>
+      </ol>
+      <p class="sub">Last step is yours: open <code>~/Applications</code> in Finder and drag <code>MDrop.app</code> onto your Dock. The app is built locally rather than downloaded. macOS may still ask to allow notifications the first time you drop a PDF.</p>
+    </section>
+
+    <section id="limits">
+      <h2>Known limits (v1)</h2>
+      <p class="sub">Stated up front so nothing surprises you.</p>
+      <ul class="lim">
+        <li>OCR output is flat text with no heading structure.</li>
+        <li>Tables on scanned pages are not rebuilt as Markdown tables.</li>
+        <li>Large PDFs with many scanned pages are slow, and there is no progress bar.</li>
+        <li>No GUI beyond the Dock icon and a system notification, by design.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <span>MDrop, MIT license.</span>
+    <span>
+      <a href="https://github.com/jasuschristsg/mdrop">Source</a> ·
+      <a href="https://github.com/jasuschristsg/mdrop/blob/main/README.md">README</a> ·
+      <a href="https://github.com/jasuschristsg/mdrop/blob/main/LICENSE">License</a>
+    </span>
+    <span>Uninstall: <code>rm -rf ~/Applications/MDrop ~/Applications/MDrop.app</code></span>
+  </footer>
+</div>
+<script>
+(function(){
+  var b=document.getElementById('copy'),c=document.getElementById('cmd');
+  b.addEventListener('click',function(){
+    var flash=function(t){b.textContent=t;setTimeout(function(){b.textContent='Copy'},1800)};
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(c.textContent).then(function(){flash('Copied')},function(){sel()});
+    }else{sel()}
+    function sel(){var r=document.createRange();r.selectNodeContents(c);var s=getSelection();s.removeAllRanges();s.addRange(r);flash('Press ⌘C')}
+  });
+  var st=document.getElementById('stage'),p=document.getElementById('pause'),pdf=document.getElementById('pdf');
+  var dock=st.querySelector('.dock i.me'),status=document.getElementById('status'),still=matchMedia('(prefers-reduced-motion:reduce)');
+  var sx=0,sy=0,dx=0,dy=0,drag=false,busy=false,doneT,backT;
+  function ms(n){return still.matches?0:n}
+  function spring(){return getComputedStyle(st).getPropertyValue('--spring').trim()||'ease-out'}
+  function manual(on){
+    st.classList.toggle('manual',on);
+    if(on){st.classList.remove('paused');p.removeAttribute('aria-pressed');p.textContent='Watch the demo'}
+    else{p.setAttribute('aria-pressed','false');p.textContent='Pause animation'}
+  }
+  function reset(){clearTimeout(doneT);clearTimeout(backT);status.textContent='';st.classList.remove('play','done');pdf.getAnimations().forEach(function(a){a.cancel()});pdf.style.transform='';busy=false}
+  function overDock(){
+    var a=pdf.getBoundingClientRect(),d=dock.getBoundingClientRect(),x=a.left+a.width/2,y=a.top+a.height/2;
+    return x>d.left-16&&x<d.right+16&&y>d.top-24&&y<d.bottom+16;
+  }
+  function snapBack(from){
+    pdf.animate([{transform:from},{transform:'none'}],{duration:ms(600),easing:spring()});
+    pdf.style.transform='';dx=dy=0;
+  }
+  function convert(from){
+    busy=true;
+    var d=dock.getBoundingClientRect(),a=pdf.getBoundingClientRect();
+    var tx=dx+(d.left+d.width/2-(a.left+a.width/2)),ty=dy+(d.top+d.height/2-(a.top+a.height/2));
+    var fly=pdf.animate([{transform:from,opacity:1},{transform:'translate('+tx+'px,'+ty+'px) scale(.3)',opacity:0}],{duration:ms(180),easing:'cubic-bezier(.55,0,.85,.35)',fill:'forwards'});
+    fly.onfinish=function(){
+      st.classList.add('play');
+      status.textContent='MDrop: report.md saved next to report.pdf. Conversion complete.';
+      doneT=setTimeout(function(){st.classList.add('done')},ms(1800));
+      backT=setTimeout(function(){
+        pdf.getAnimations().forEach(function(x){x.cancel()});
+        pdf.style.transform='';dx=dy=0;
+        pdf.animate([{opacity:0,transform:'scale(.9)'},{opacity:1,transform:'none'}],{duration:ms(500),easing:spring()});
+        busy=false;
+      },ms(2400));
+    };
+  }
+  pdf.addEventListener('pointerdown',function(e){
+    if(busy||e.button>0)return;
+    manual(true);reset();drag=true;sx=e.clientX;sy=e.clientY;dx=dy=0;
+    pdf.setPointerCapture(e.pointerId);pdf.classList.add('dragging');
+  });
+  pdf.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    dx=e.clientX-sx;dy=e.clientY-sy;
+    pdf.style.transform='translate('+dx+'px,'+dy+'px) scale(1.05) rotate(-2deg)';
+    dock.classList.toggle('over',overDock());
+  });
+  function release(cancelled){
+    if(!drag)return;
+    drag=false;pdf.classList.remove('dragging');
+    var hit=!cancelled&&overDock(),from=pdf.style.transform||'none';
+    dock.classList.remove('over');
+    if(hit)convert(from);else snapBack(from);
+  }
+  pdf.addEventListener('pointerup',function(){release(false)});
+  pdf.addEventListener('pointercancel',function(){release(true)});
+  pdf.addEventListener('keydown',function(e){
+    if((e.key==='Enter'||e.key===' ')&&!busy){e.preventDefault();manual(true);reset();dx=dy=0;convert('none')}
+  });
+  p.addEventListener('click',function(){
+    if(st.classList.contains('manual')){reset();manual(false);return}
+    var on=st.classList.toggle('paused');
+    p.setAttribute('aria-pressed',on);
+    p.textContent=on?'Play animation':'Pause animation';
+  });
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(e){st.classList.toggle('off',!e[0].isIntersecting)}).observe(st);
+  }
+})();
+</script>
+</body>
+</html>
