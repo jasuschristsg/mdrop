@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MDrop: PDF to Markdown from your Dock</title>
-<meta name="description" content="A macOS Dock app. Drop a PDF on the icon, get a Markdown file next to it. OCR fallback for scans. Fully offline.">
+<meta name="description" content="A small Mac app. Drag a PDF onto its Dock icon and a Markdown file appears next to it. Reads scanned pages too. Nothing leaves your Mac.">
 <meta property="og:title" content="MDrop: Drop a PDF. Get Markdown.">
-<meta property="og:description" content="A macOS Dock app. No window, no uploads, no subscription.">
+<meta property="og:description" content="A small Mac app with no window. Drop PDFs on the Dock icon, get Markdown.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://mdrop-omega.vercel.app/">
 <meta property="og:image" content="https://mdrop-omega.vercel.app/og-image.png">
@@ -131,6 +131,27 @@ button.copy:hover{border-color:var(--accent)}
   .stage.manual.play .out,.stage.manual.play .note{opacity:1}
 }
 
+mark{color:var(--fg);background:linear-gradient(transparent 52%,color-mix(in srgb,var(--hi) var(--mk,55%),transparent) 52%);padding:0 .12em;margin:0 -.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.try{font-size:14px;color:var(--muted);margin:26px 0 8px}
+.walk{list-style:none;margin:28px 0 0;padding:0;counter-reset:w;max-width:44em}
+.walk>li{counter-increment:w;position:relative;padding:0 0 28px 48px}
+.walk>li::before{content:counter(w);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font:600 13px var(--mono);color:var(--accent-text)}
+.walk h3{margin:3px 0 6px;font-size:18px;letter-spacing:-.01em}
+.walk p{margin:0 0 10px}
+.walk .cmd{margin:8px 0 12px}
+.walk .opt{font:600 13px var(--mono);color:var(--muted);margin:14px 0 4px}
+.fine{font-size:14px;color:var(--muted)}
+details{border-top:1px solid var(--line)}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;padding:16px 28px 16px 0;font-weight:600;list-style:none;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:4px;top:14px;font:400 22px var(--mono);color:var(--muted)}
+details[open] summary::after{content:"\2212"}
+details>div{padding:0 0 18px;color:var(--muted);max-width:44em}
+details>div p{margin:0 0 10px}
+.who{margin-top:18px;color:var(--fg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) mark{--mk:26%}}
+:root[data-theme="dark"] mark{--mk:26%}
 section{padding:56px 0;border-top:1px solid var(--line)}
 h2{font-size:28px;letter-spacing:-.025em;margin:0 0 8px}
 .sub{color:var(--muted);margin:0 0 28px;max-width:38em}
@@ -173,7 +194,7 @@ footer a:hover{color:var(--fg)}
     <nav>
       <a href="#how">How it works</a>
       <a class="in" href="#install">Install</a>
-      <a href="#limits">Limits</a>
+      <a href="#faq">Questions</a>
       <a class="gh" href="https://github.com/jasuschristsg/mdrop">GitHub</a>
     </nav>
   </header>
@@ -182,17 +203,17 @@ footer a:hover{color:var(--fg)}
     <div class="hero">
       <div>
         <h1>Drop a PDF.<br>Get <em>Markdown.</em></h1>
-        <p class="lede">A macOS Dock app. Drag one or more PDFs onto the icon and a <code>.md</code> file lands next to each one. No window, no uploads, no subscription.</p>
+        <p class="lede">MDrop is a small Mac app I built. Drag PDFs onto its icon in your Dock and <mark>a Markdown file shows up next to each one</mark>. No window to open, nothing to click through.</p>
+        <div class="cta">
+          <a class="btn" href="#install">Install</a>
+          <a class="btn alt" href="https://github.com/jasuschristsg/mdrop">View on GitHub</a>
+        </div>
+        <p class="try">Already comfortable in Terminal? You need Homebrew and Python 3, then:</p>
         <div class="cmd" role="group" aria-label="Install command">
           <span class="p">$</span>
-          <code id="cmd">git clone https://github.com/jasuschristsg/mdrop.git
+          <code>git clone https://github.com/jasuschristsg/mdrop.git
 cd mdrop &amp;&amp; ./install.sh</code>
-          <button class="copy" id="copy" type="button">Copy</button>
-        </div>
-        <p class="meta">Needs macOS, Homebrew and Python 3. <a href="#install">What the installer does</a></p>
-        <div class="cta">
-          <a class="btn" href="https://github.com/jasuschristsg/mdrop">View on GitHub</a>
-          <a class="btn alt" href="#how">How it works</a>
+          <button class="copy" type="button">Copy</button>
         </div>
       </div>
       <div>
@@ -210,28 +231,17 @@ cd mdrop &amp;&amp; ./install.sh</code>
 
     <section id="how">
       <h2>How it works</h2>
-      <p class="sub">One script, run once for each PDF you drop.</p>
+      <p class="sub">There's one script behind it. Here's what it does with each PDF you drop.</p>
       <div class="grid">
-        <div class="card"><span class="num">01</span><h3>Drop</h3><p>Drag one or more PDFs onto the Dock icon. Multi-file drops run in one pass, no restart between them.</p></div>
-        <div class="card"><span class="num">02</span><h3>Extract</h3><p>Pages with a text layer use native extraction. Pages with almost no text are treated as scans and run through OCR.</p></div>
-        <div class="card"><span class="num">03</span><h3>Done</h3><p>A <code>.md</code> file with the same name is saved beside each PDF, and a macOS notification confirms it.</p></div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Why it's built this way</h2>
-      <p class="sub">A small tool that stays out of the way.</p>
-      <div class="grid four">
-        <div class="card"><h3>Offline</h3><p>Nothing leaves your Mac. No API calls.</p></div>
-        <div class="card"><h3>Windowless</h3><p>No app UI, no import step. Just the Dock icon.</p></div>
-        <div class="card"><h3>Per-page OCR</h3><p>Mixed PDFs work. OCR text is inserted at the right page position.</p></div>
-        <div class="card"><h3>Free</h3><p>No accounts, no subscription, MIT license.</p></div>
+        <div class="card"><span class="num">1</span><h3>You drop</h3><p>Drag one PDF or ten onto the MDrop icon in your Dock. They're all handled in one go.</p></div>
+        <div class="card"><span class="num">2</span><h3>It reads</h3><p>If a page has real text, MDrop copies it. If a page is just a picture, like a scan, it reads the picture with Tesseract OCR instead.</p></div>
+        <div class="card"><span class="num">3</span><h3>You get a file</h3><p>A <code>.md</code> file with the same name appears next to each PDF, and a notification tells you it's done.</p></div>
       </div>
     </section>
 
     <section>
       <h2>The output</h2>
-      <p class="sub">Each page is marked with an HTML comment saying whether it came from native text or OCR, so you can spot pages worth double-checking.</p>
+      <p class="sub">This is real output from a two-page test PDF. Each page gets a comment saying whether its text was read directly or by OCR, so you know which pages to double-check.</p>
       <div class="pair">
         <div><div class="lab">report.pdf</div>
 <pre><span class="c">Page 1 (text layer)</span>
@@ -254,48 +264,98 @@ Signed by the board on 14 March.</pre></div>
       </div>
     </section>
 
+    <section>
+      <h2>Why I made it</h2>
+      <p class="sub">Every PDF converter I found was either a window that handled one file at a time, or a website with no OCR for scanned pages. I wanted to drop files on an icon and get on with my day. So MDrop has no window. <mark>Nothing leaves your Mac</mark>, there's no account, and it's free under the MIT license.</p>
+      <p class="who">Built by <strong><a href="https://github.com/jasuschristsg">Jasper</a></strong>. <a href="https://github.com/jasuschristsg/mdrop">The code is on GitHub</a>, and the installer is one short file you can read before you run it.</p>
+    </section>
+
     <section id="install">
       <h2>Install</h2>
-      <p class="sub">Needs macOS, <a href="https://brew.sh">Homebrew</a> and Python 3. Run the command at the top of this page. The installer, <a href="https://github.com/jasuschristsg/mdrop/blob/main/install.sh">install.sh</a>, does this and nothing else:</p>
-      <ol class="steps">
-        <li>Installs Tesseract with Homebrew, if it is missing.</li>
-        <li>Installs <code>pymupdf</code>, <code>pytesseract</code> and <code>pillow</code> with pip, for your user only.</li>
-        <li>Copies <code>mdrop.py</code> to <code>~/Applications/MDrop/</code> and builds <code>~/Applications/MDrop.app</code> on your Mac.</li>
+      <p class="sub">MDrop installs through Terminal, the app where you type commands. <mark>If you've never used it, that's fine.</mark> Every step is below, and you only paste what's in the grey boxes. Already comfortable there? The three lines at the top of this page are all you need.</p>
+      <ol class="walk">
+        <li>
+          <h3>Open Terminal</h3>
+          <p>Press <strong>⌘ Space</strong>, type <strong>Terminal</strong>, and press Return. A window with a blinking cursor opens. To paste a command into it, press <strong>⌘ V</strong>, then Return.</p>
+        </li>
+        <li>
+          <h3>Check for Homebrew</h3>
+          <p>Homebrew is a free tool that installs other tools. MDrop uses it to get the OCR engine. Paste this and press Return:</p>
+          <div class="cmd"><span class="p">$</span><code>brew --version</code><button class="copy" type="button">Copy</button></div>
+          <p>If you see a version number, go to step 3. If you see "command not found", open <a href="https://brew.sh">brew.sh</a>, paste the one command shown there, and follow what it prints. Then come back.</p>
+        </li>
+        <li>
+          <h3>Check for Python 3</h3>
+          <div class="cmd"><span class="p">$</span><code>python3 --version</code><button class="copy" type="button">Copy</button></div>
+          <p>If you see "Python 3" and a number, you're set. On a Mac that has never had developer tools, macOS may offer to install them. Click Install, wait for it to finish, and run the command again.</p>
+        </li>
+        <li>
+          <h3>Get MDrop</h3>
+          <p class="opt">Option A: with git</p>
+          <div class="cmd"><span class="p">$</span><code>git clone https://github.com/jasuschristsg/mdrop.git
+cd mdrop</code><button class="copy" type="button">Copy</button></div>
+          <p class="opt">Option B: without git</p>
+          <p>Open <a href="https://github.com/jasuschristsg/mdrop">the GitHub page</a>, click <strong>Code</strong>, then <strong>Download ZIP</strong>. Double-click the ZIP to unzip it. In Terminal, type <code>cd</code> followed by a space, drag the unzipped folder into the Terminal window, and press Return.</p>
+        </li>
+        <li>
+          <h3>Run the installer</h3>
+          <div class="cmd"><span class="p">$</span><code>./install.sh</code><button class="copy" type="button">Copy</button></div>
+          <p>It installs Tesseract (the OCR engine, usually the slowest part), three Python packages, and builds the app in your own Applications folder. It's finished when you see "Done. MDrop.app is at". You can <a href="https://github.com/jasuschristsg/mdrop/blob/main/install.sh">read the script</a> first if you like.</p>
+        </li>
+        <li>
+          <h3>Put it in your Dock</h3>
+          <p>In Finder, press <strong>⇧⌘ H</strong> to open your home folder, open the <strong>Applications</strong> folder inside it, and drag <strong>MDrop.app</strong> onto your Dock.</p>
+        </li>
+        <li>
+          <h3>Try it</h3>
+          <p>Drag any PDF onto the MDrop icon. A "Conversion complete" notification appears, and a <code>.md</code> file with the same name shows up beside the PDF. The first time, macOS may ask to let MDrop send notifications.</p>
+        </li>
       </ol>
-      <p class="sub">Last step is yours: open <code>~/Applications</code> in Finder and drag <code>MDrop.app</code> onto your Dock. The app is built locally rather than downloaded. macOS may still ask to allow notifications the first time you drop a PDF.</p>
+      <h3 style="margin:8px 0 12px;font-size:18px">If something goes wrong</h3>
+      <details><summary>"brew: command not found" right after installing Homebrew</summary><div><p>Close Terminal and open it again. If it still fails, scroll up in the old window: Homebrew prints a couple of "Next steps" commands at the end of its install. Run those.</p></div></details>
+      <details><summary>"Permission denied" when I run ./install.sh</summary><div><p>Run it through bash instead: <code>bash install.sh</code>.</p></div></details>
+      <details><summary>I dropped a PDF and nothing happened</summary><div><p>Run the converter yourself to see the error. Type <code>python3 ~/Applications/MDrop/mdrop.py</code>, add a space, drag your PDF into the Terminal window, and press Return. Whatever it prints is the problem.</p></div></details>
+      <details><summary>macOS says it can't open MDrop</summary><div><p>Open System Settings, go to <strong>Privacy &amp; Security</strong>, scroll down and click <strong>Open Anyway</strong>, then confirm. The app is built on your Mac, so this is unlikely, but that's the fix if it happens.</p></div></details>
+    </section>
+
+    <section id="faq">
+      <h2>Questions</h2>
+      <details><summary>Is it safe?</summary><div><p>MDrop itself never connects to the internet. The installer does, to download Tesseract and the Python packages. The code is open, and the installer is one short file you can read first.</p></div></details>
+      <details><summary>Does it handle scanned PDFs?</summary><div><p>Yes, page by page. Pages with real text are copied directly. Pages that are just images go through OCR. The catch: scanned pages come out as plain text, with no headings or tables.</p></div></details>
+      <details><summary>Where does the file go?</summary><div><p>Next to the PDF, with the same name and a <code>.md</code> ending. If a file with that name is already there, it gets replaced.</p></div></details>
+      <details><summary>Why do I need Terminal?</summary><div><p>MDrop isn't packaged as a downloadable app. The installer builds it on your Mac instead, which is why Terminal is involved.</p></div></details>
+      <details><summary>How do I uninstall it?</summary><div><p>Paste this into Terminal, then drag the icon out of your Dock:</p><div class="cmd"><span class="p">$</span><code>rm -rf ~/Applications/MDrop ~/Applications/MDrop.app</code><button class="copy" type="button">Copy</button></div></div></details>
     </section>
 
     <section id="limits">
-      <h2>Known limits (v1)</h2>
-      <p class="sub">Stated up front so nothing surprises you.</p>
+      <h2>Where it falls short</h2>
       <ul class="lim">
-        <li>OCR output is flat text with no heading structure.</li>
-        <li>Tables on scanned pages are not rebuilt as Markdown tables.</li>
-        <li>Large PDFs with many scanned pages are slow, and there is no progress bar.</li>
-        <li>No GUI beyond the Dock icon and a system notification, by design.</li>
+        <li><mark>Scanned pages come out as plain text.</mark> No headings, and tables aren't rebuilt.</li>
+        <li>Big PDFs with lots of scanned pages are slow, and there's no progress bar. Give it a minute.</li>
+        <li>There's no window. If you want one, this isn't it.</li>
+        <li>Mac only.</li>
       </ul>
     </section>
   </main>
 
   <footer>
-    <span>MDrop, MIT license.</span>
+    <span>Built by <a href="https://github.com/jasuschristsg">Jasper</a>. MIT license.</span>
     <span>
       <a href="https://github.com/jasuschristsg/mdrop">Source</a> ·
       <a href="https://github.com/jasuschristsg/mdrop/blob/main/README.md">README</a> ·
       <a href="https://github.com/jasuschristsg/mdrop/blob/main/LICENSE">License</a>
     </span>
-    <span>Uninstall: <code>rm -rf ~/Applications/MDrop ~/Applications/MDrop.app</code></span>
   </footer>
 </div>
 <script>
 (function(){
-  var b=document.getElementById('copy'),c=document.getElementById('cmd');
-  b.addEventListener('click',function(){
-    var flash=function(t){b.textContent=t;setTimeout(function(){b.textContent='Copy'},1800)};
-    if(navigator.clipboard){
-      navigator.clipboard.writeText(c.textContent).then(function(){flash('Copied')},function(){sel()});
-    }else{sel()}
-    function sel(){var r=document.createRange();r.selectNodeContents(c);var s=getSelection();s.removeAllRanges();s.addRange(r);flash('Press ⌘C')}
+  document.querySelectorAll('.cmd').forEach(function(box){
+    var b=box.querySelector('button.copy'),c=box.querySelector('code');
+    b.addEventListener('click',function(){
+      var flash=function(t){b.textContent=t;setTimeout(function(){b.textContent='Copy'},1800)};
+      function sel(){var r=document.createRange();r.selectNodeContents(c);var g=getSelection();g.removeAllRanges();g.addRange(r);flash('Press ⌘C')}
+      if(navigator.clipboard){navigator.clipboard.writeText(c.textContent).then(function(){flash('Copied')},sel)}else{sel()}
+    });
   });
   var st=document.getElementById('stage'),p=document.getElementById('pause'),pdf=document.getElementById('pdf');
   var dock=st.querySelector('.dock i.me'),status=document.getElementById('status'),still=matchMedia('(prefers-reduced-motion:reduce)');
