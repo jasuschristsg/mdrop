@@ -192,6 +192,14 @@ details[open] summary::after{content:"\2212"}
 details>div{padding:0 0 18px;color:var(--muted);max-width:44em}
 details>div p{margin:0 0 10px}
 h3.sm{margin:14px 0 8px;font-size:19px;letter-spacing:-.015em}
+details.guide{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+details.guide:last-of-type{border-bottom:1px solid var(--line)}
+.guide>summary{display:flex;align-items:baseline;gap:12px;padding:18px 52px 18px 20px;font-size:17px;font-weight:700;min-height:56px}
+.guide>summary small{font:600 12px var(--mono);color:var(--accent-text);white-space:nowrap}
+.guide>summary::after{right:20px;top:14px;color:var(--accent-text)}
+.guide>summary:hover{background:color-mix(in srgb,var(--accent-text) 6%,var(--card))}
+.guide>.gb{padding:6px 20px 8px;color:var(--fg);max-width:none}
+.guide .walk{margin-top:0}
 .proof{display:grid;gap:28px;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:start}
 .vid{margin:0;max-width:600px}
 .vid video{display:block;width:100%;height:auto;aspect-ratio:1200/1128;border-radius:14px;border:1px solid var(--line);background:var(--card)}
@@ -282,13 +290,16 @@ footer a:hover{color:var(--fg);text-decoration:underline}
 
     <section id="install" class="panel">
       <h2>Install</h2>
-      <p class="sub">MDrop installs through Terminal, the app where you type commands. <mark>If you've never used it, that's fine.</mark> There are six steps, and you only paste what's in the grey boxes. This needs a Mac.</p>
+      <p class="sub">MDrop installs through Terminal, the app where you type commands. <mark>If you've never used it, that's fine.</mark> This needs a Mac.</p>
       <p class="sub"><mark>Nothing leaves your Mac.</mark> MDrop itself never connects to the internet. The installer downloads Tesseract and three Python packages, and that's all it does. It's one short file, and you can <a href="https://github.com/jasuschristsg/mdrop/blob/main/install.sh">read it first</a>.</p>
       <div class="quick">
         <p class="try">Already use Terminal? You need Homebrew and Python 3, then:</p>
         <div class="cmd" role="group" aria-label="Install command"><span class="p">$</span><code>git clone https://github.com/jasuschristsg/mdrop.git
 cd mdrop &amp;&amp; ./install.sh</code><button class="copy" type="button">Copy</button></div>
       </div>
+      <details class="guide" id="steps">
+        <summary><span>New to Terminal? Step-by-step guide</span><small>6 steps</small></summary>
+        <div class="gb">
       <ol class="walk">
         <li>
           <h3>Open Terminal</h3>
@@ -332,6 +343,8 @@ cd mdrop</code><button class="copy" type="button">Copy</button></div>
       <details><summary>"Permission denied" when I run ./install.sh</summary><div><p>Run it through bash instead: <code>bash install.sh</code>.</p></div></details>
       <details><summary>I dropped a PDF and nothing happened</summary><div><p>Run the converter yourself to see the error. Type <code>python3 ~/Applications/MDrop/mdrop.py</code>, add a space, drag your PDF into the Terminal window, and press Return. Whatever it prints is the problem.</p></div></details>
       <details><summary>macOS says it can't open MDrop</summary><div><p>Open System Settings, go to <strong>Privacy &amp; Security</strong>, scroll down and click <strong>Open Anyway</strong>, then confirm. The app is built on your Mac, so this is unlikely, but that's the fix if it happens.</p></div></details>
+        </div>
+      </details>
     </section>
 
     <section id="see">
@@ -419,6 +432,9 @@ Signed by the board on 14 March.</pre>
       if(navigator.clipboard){navigator.clipboard.writeText(c.textContent).then(function(){flash('Copied')},sel)}else{sel()}
     });
   });
+  var g=document.getElementById('steps');
+  function openGuide(){if(g&&location.hash==='#steps'){g.open=true;g.scrollIntoView()}}
+  openGuide();addEventListener('hashchange',openGuide);
   var st=document.getElementById('stage'),p=document.getElementById('pause'),pdf=document.getElementById('pdf'),hint=document.getElementById('hint');
   var dock=st.querySelector('.dock i.me'),status=document.getElementById('status'),still=matchMedia('(prefers-reduced-motion:reduce)'),coarse=matchMedia('(pointer:coarse)').matches;
   var sx=0,sy=0,dx=0,dy=0,drag=false,busy=false,doneT,backT;
