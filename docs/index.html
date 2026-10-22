@@ -44,8 +44,8 @@ a{color:inherit}
 p,li{text-wrap:pretty}
 .wrap{max-width:960px;margin:0 auto;padding:0 20px}
 header.top{display:flex;align-items:center;justify-content:space-between;padding:12px 0}
-.logo{font:600 17px var(--mono);text-decoration:none;letter-spacing:-.02em;padding:8px 0}
-.logo b{color:var(--accent-text)}
+.logo{font:600 17px var(--mono);text-decoration:none;letter-spacing:-.02em;padding:8px 0;display:inline-flex;align-items:center;gap:6px}
+.logo img{width:34px;height:34px;margin:-3px;display:block}
 nav a{font-size:14px;color:var(--muted);text-decoration:none;margin-left:12px;padding:10px 6px;display:inline-block}
 nav a:hover{color:var(--fg)}
 .hero{padding:40px 0 40px;display:grid;gap:40px;grid-template-columns:1.1fr .9fr;align-items:center}
@@ -169,7 +169,7 @@ footer a:hover{color:var(--fg)}
 <a class="sk" href="#main">Skip to content</a>
 <div class="wrap">
   <header class="top">
-    <a class="logo" href="#"><b>M</b>Drop</a>
+    <a class="logo" href="#"><img src="mdrop-icon.svg" alt="" width="34" height="34">MDrop</a>
     <nav>
       <a href="#how">How it works</a>
       <a class="in" href="#install">Install</a>

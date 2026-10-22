@@ -1,3 +1,5 @@
+<img src="icon/mdrop-icon.svg" width="128" alt="MDrop app icon">
+
 # MDrop
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
