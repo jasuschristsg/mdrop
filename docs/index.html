@@ -80,14 +80,26 @@ button.copy:hover{border-color:var(--accent)}
 .fly{position:absolute;top:24px;left:var(--L);width:112px;height:148px;animation:flyx 6s infinite}
 .fly .page{top:0;left:0}
 .ghost{opacity:0;box-shadow:0 10px 24px rgba(0,0,0,.18);animation:flyy 6s infinite}
-.out{position:absolute;top:24px;left:calc(var(--L) + 128px);width:min(172px,calc(100cqw - var(--L) - 140px));height:148px;border-radius:8px;border:1px solid var(--line);background:var(--code);padding:14px 10px;font:11px/1.65 var(--mono);color:var(--fg);animation:outin 6s infinite}
-.out .l{display:block;white-space:pre;animation:wipe 6s infinite backwards}
-.out .l:nth-child(2){animation-delay:.12s}.out .l:nth-child(3){animation-delay:.24s}.out .l:nth-child(4){animation-delay:.36s}
-.out .c{color:var(--muted)}
+.out{position:absolute;top:24px;left:calc(var(--L) + 128px);width:min(172px,calc(100cqw - var(--L) - 140px));height:148px;border-radius:8px;border:1px solid var(--line);background:var(--card);padding:10px 8px;font:11px/1.4 var(--mono);color:var(--fg);display:flex;flex-direction:column;gap:2px;animation:outin 6s infinite}
+.out .bar{display:flex;align-items:center;gap:5px;padding:0 6px 8px;color:var(--muted)}
+.out .bar i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
+.out .bar span{margin-left:4px}
+.out .l{display:flex;align-items:center;height:26px;padding:0 6px;border-radius:6px;white-space:nowrap}
+.out .ic{display:inline-block;width:10px;height:13px;border-radius:2px;border:1.5px solid color-mix(in srgb,var(--muted) 55%,transparent);margin-right:8px;flex:none}
+.out .nr{background:color-mix(in srgb,var(--hi) var(--nrm,50%),transparent);animation:newrow 6s infinite backwards}
+.out .nr .ic{border-color:var(--accent-text)}
+
+
 .note{position:absolute;left:calc(var(--L) + 128px);top:182px;width:min(172px,calc(100cqw - var(--L) - 140px));font-size:11px;line-height:1.35;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:9px;animation:note 6s infinite}
 .note b{display:block;font-weight:600}
 .dock{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;padding:9px 12px;border-radius:18px;background:color-mix(in srgb,var(--fg) 14%,var(--card));border:1px solid var(--line)}
-.dock i{width:42px;height:42px;border-radius:10px;background:var(--line);display:block}
+.dock i{--g:color-mix(in srgb,var(--muted) 48%,transparent);position:relative;width:42px;height:42px;border-radius:10px;background:color-mix(in srgb,var(--muted) 13%,var(--card));display:block}
+.dock i::before{content:"";position:absolute}
+.dock i:nth-child(1)::before{inset:12px;border-radius:50%;border:3px solid var(--g)}
+.dock i:nth-child(2)::before{inset:12px 10px;background:linear-gradient(var(--g),var(--g)) 0 0/100% 3px no-repeat,linear-gradient(var(--g),var(--g)) 0 50%/70% 3px no-repeat,linear-gradient(var(--g),var(--g)) 0 100%/100% 3px no-repeat}
+.dock i:nth-child(4)::before{inset:11px;border-radius:5px;border:3px solid var(--g)}
+.dock i:nth-child(5)::before{inset:11px;background:radial-gradient(circle at 24% 24%,var(--g) 3px,transparent 3.6px),radial-gradient(circle at 76% 24%,var(--g) 3px,transparent 3.6px),radial-gradient(circle at 24% 76%,var(--g) 3px,transparent 3.6px),radial-gradient(circle at 76% 76%,var(--g) 3px,transparent 3.6px)}
+.dock i.me::before{display:none}
 .dock i.me{background:none;display:grid;place-items:center;animation:hop 6s infinite}
 .dock i.me img{width:52px;height:52px;max-width:none;margin:-5px;display:block}
 .tip{position:absolute;left:var(--L);top:182px;padding:3px 10px;border-radius:999px;background:var(--hi);color:#12324A;font:600 11px/1.5 var(--mono);pointer-events:none}
@@ -95,7 +107,8 @@ button.copy:hover{border-color:var(--accent)}
 .trail path{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
 .trail .d{stroke-dasharray:3 6}
 .stage.manual .tip,.stage.manual .trail{display:none}
-@container (max-width:340px){.out{padding:14px 8px}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stage{--nrm:32%;--nrf:60%}}
+:root[data-theme="dark"] .stage{--nrm:32%;--nrf:60%}
 .stage.paused *,.stage.off *{animation-play-state:paused!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .stagebar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:6px}
@@ -104,17 +117,17 @@ button.copy:hover{border-color:var(--accent)}
 .src.dragging{cursor:grabbing;z-index:6;box-shadow:0 18px 30px rgba(0,0,0,.22)}
 /* manual mode: the visitor drives it. The result replays the loop from 1.3s, then rests. */
 .stage.manual .fly{display:none}
-.stage.manual .out,.stage.manual .out .l,.stage.manual .note,.stage.manual .dock i.me{animation:none}
-.stage.manual .out,.stage.manual .note{opacity:0}
+.stage.manual .out,.stage.manual .out .nr,.stage.manual .note,.stage.manual .dock i.me{animation:none}
+.stage.manual .out,.stage.manual .out .nr,.stage.manual .note{opacity:0}
 .stage.manual .dock i.me{transition:transform .22s var(--out)}
 .stage.manual .dock i.me.over{transform:scale(1.18)}
 .stage.manual.play .out{animation:outin 6s -1.3s 1 both}
-.stage.manual.play .out .l{animation:wipe 6s 1 both}
-.stage.manual.play .out .l:nth-child(1){animation-delay:-1.3s}.stage.manual.play .out .l:nth-child(2){animation-delay:-1.18s}.stage.manual.play .out .l:nth-child(3){animation-delay:-1.06s}.stage.manual.play .out .l:nth-child(4){animation-delay:-.94s}
+.stage.manual.play .out .nr{animation:newrow 6s -1.3s 1 both}
+
 .stage.manual.play .note{animation:note 6s -1.3s 1 both}
 .stage.manual.play .dock i.me{animation:hop 6s -1.3s 1 both}
-.stage.manual.done .out,.stage.manual.done .out .l,.stage.manual.done .note,.stage.manual.done .dock i.me{animation:none}
-.stage.manual.done .out,.stage.manual.done .note{opacity:1}
+.stage.manual.done .out,.stage.manual.done .out .nr,.stage.manual.done .note,.stage.manual.done .dock i.me{animation:none}
+.stage.manual.done .out,.stage.manual.done .out .nr,.stage.manual.done .note{opacity:1}
 /* 6s loop. Beats: lift 0.5s, travel 0.75s, absorb 1.45s, spring 1.5s, wipe 1.9s, notify 2.6s, hold, fade 5.4s */
 @keyframes flyx{0%,12.5%{transform:translateX(0);animation-timing-function:cubic-bezier(.25,.6,.2,1)}24.2%,100%{transform:translateX(calc(50cqw - var(--L) - 56px))}}
 @keyframes flyy{
@@ -132,11 +145,16 @@ button.copy:hover{border-color:var(--accent)}
   36%,100%{transform:none}
 }
 @keyframes outin{0%,28%{opacity:0;transform:translateY(10px) scale(.94);animation-timing-function:var(--spring)}36%,88%{opacity:1;transform:none}93%,100%{opacity:0;transform:none}}
-@keyframes wipe{0%,31.7%{clip-path:inset(0 100% 0 0);animation-timing-function:var(--out)}36%,100%{clip-path:inset(0 0 0 0)}}
+@keyframes newrow{
+  0%,36%{opacity:0;transform:translateY(-10px) scale(.98);background:color-mix(in srgb,var(--hi) 0%,transparent);animation-timing-function:var(--spring)}
+  43%{opacity:1;transform:none;background:color-mix(in srgb,var(--hi) var(--nrf,90%),transparent);animation-timing-function:var(--out)}
+  56%,88%{opacity:1;transform:none;background:color-mix(in srgb,var(--hi) var(--nrm,50%),transparent)}
+  93%,100%{opacity:0;transform:none}
+}
 @keyframes note{0%,43%{opacity:0;transform:translateY(-8px) scale(.96);animation-timing-function:var(--spring)}50%,88%{opacity:1;transform:none}92%,100%{opacity:0;transform:none}}
 @media (prefers-reduced-motion:reduce){
   .fly,#pause{display:none}
-  .out,.out .l,.note,.dock i.me,.stage.manual.play .out,.stage.manual.play .out .l,.stage.manual.play .note,.stage.manual.play .dock i.me{animation:none}
+  .out,.out .nr,.note,.dock i.me,.stage.manual.play .out,.stage.manual.play .out .nr,.stage.manual.play .note,.stage.manual.play .dock i.me{animation:none}
   .stage.manual.play .out,.stage.manual.play .note{opacity:1}
 }
 
@@ -251,7 +269,7 @@ footer a:hover{color:var(--fg);text-decoration:underline}
         <div class="stage" id="stage" role="group" aria-label="Interactive demo: drag report.pdf onto the MDrop Dock icon">
           <div class="page src" id="pdf" role="button" tabindex="0" aria-label="report.pdf. Drag it onto the MDrop Dock icon, or press Enter to convert it"><b class="h"></b><b></b><b></b><b class="s"></b><b></b><small>report.pdf</small></div>
           <div class="fly" aria-hidden="true"><div class="page ghost"><b class="h"></b><b></b><b></b><b class="s"></b><b></b></div></div>
-          <div class="out"><span class="l"># report</span><span class="l c">&lt;!-- page 1 (text) --&gt;</span><span class="l">Q3 Summary</span><span class="l">Revenue grew 12%</span></div>
+          <div class="out" aria-hidden="true"><div class="bar"><i></i><i></i><i></i><span>Documents</span></div><div class="l"><span class="ic"></span>invoice.pdf</div><div class="l nr"><span class="ic"></span>report.md</div><div class="l"><span class="ic"></span>report.pdf</div></div>
           <div class="note"><b>MDrop</b>Conversion complete</div>
           <svg class="trail" viewBox="0 0 300 260" aria-hidden="true"><path class="d" d="M34 178C34 228 74 248 108 248"/><path d="M101 243L109 248L101 253"/></svg>
           <span class="tip" aria-hidden="true">drag me</span>
