@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<title>MDrop icon, variant B</title>
+<defs><path id="h" d="M46.0,0 C28.5,190.8 -0.0,328.6 -0.0,451.0 A79.0,79.0 0 0 0 158.0,451.0 L158.0,210.4 L265.0,291.5 L265.0,166.0 Z"/></defs>
+<rect x="100" y="100" width="824" height="824" rx="185" fill="#12324A"/>
+<g transform="translate(247.0,253.0)">
+<use href="#h" fill="#2EC4B6"/>
+<use href="#h" fill="#FFC857" transform="translate(530,0) scale(-1,1)"/>
+</g>
+</svg>
