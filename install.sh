@@ -58,6 +58,18 @@ rm -rf "$APP_BUNDLE"
 osacompile -o "$APP_BUNDLE" "$TMP_SCPT"
 rm -f "$TMP_SCPT"
 
+# 7. Apply the MDrop icon. osacompile ships a layered default icon (droplet.icns plus
+#    Assets.car, named by CFBundleIconName); remove the layered one so droplet.icns wins.
+ICON_SRC="$SCRIPT_DIR/icon/MDrop.icns"
+if [ -f "$ICON_SRC" ]; then
+  RES="$APP_BUNDLE/Contents/Resources"
+  cp "$ICON_SRC" "$RES/droplet.icns"
+  rm -f "$RES/Assets.car"
+  /usr/libexec/PlistBuddy -c "Delete :CFBundleIconName" "$APP_BUNDLE/Contents/Info.plist" 2>/dev/null || true
+  codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null 2>&1 || true
+  touch "$APP_BUNDLE"
+fi
+
 echo ""
 echo "Done. MDrop.app is at: $APP_BUNDLE"
 echo "Drag it onto your Dock to finish setup (Finder > open ~/Applications > drag MDrop.app to Dock)."
