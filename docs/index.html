@@ -70,26 +70,32 @@ button.copy:hover{border-color:var(--accent)}
 
 /* hero: a PDF becomes a .md file */
 .stage{position:relative;height:320px;container-type:inline-size;border:1px solid var(--line);border-radius:18px;background:
-  linear-gradient(180deg,transparent 60%,color-mix(in srgb,var(--accent) 7%,transparent)),var(--card);overflow:hidden;--out:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1)}
+  linear-gradient(180deg,transparent 60%,color-mix(in srgb,var(--accent) 7%,transparent)),var(--card);overflow:hidden;--out:cubic-bezier(.16,1,.3,1);--spring:cubic-bezier(.34,1.56,.64,1);--L:max(12px,calc(50cqw - 150px))}
 @supports (animation-timing-function:linear(0,1)){.stage{--spring:linear(0, 0.088, 0.3, 0.561, 0.813, 1.016, 1.153, 1.221, 1.232, 1.2, 1.145, 1.084, 1.028, 0.985, 0.958, 0.946, 0.947, 0.957, 0.97, 0.985, 0.997, 1.006, 1.011, 1.013, 1.012, 1.009, 1.006, 1.003, 1)}}
-.page{position:absolute;top:24px;left:20px;width:112px;height:148px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#52626E;padding:14px 12px;display:flex;flex-direction:column;gap:7px}
+.page{position:absolute;top:24px;left:var(--L);width:112px;height:148px;border-radius:8px;border:1px solid var(--line);background:#fff;color:#52626E;padding:14px 12px;display:flex;flex-direction:column;gap:7px}
 .page b{display:block;height:7px;border-radius:4px;background:#DCE5EA}
 .page b.h{height:10px;width:60%;background:#52626E}
 .page b.s{width:75%}
 .page small{margin-top:auto;font:11px var(--mono)}
-.fly{position:absolute;top:24px;left:20px;width:112px;height:148px;animation:flyx 6s infinite}
+.fly{position:absolute;top:24px;left:var(--L);width:112px;height:148px;animation:flyx 6s infinite}
 .fly .page{top:0;left:0}
 .ghost{opacity:0;box-shadow:0 10px 24px rgba(0,0,0,.18);animation:flyy 6s infinite}
-.out{position:absolute;top:24px;right:20px;width:172px;height:148px;border-radius:8px;border:1px solid var(--line);background:var(--code);padding:14px 10px;font:11px/1.65 var(--mono);color:var(--fg);animation:outin 6s infinite}
+.out{position:absolute;top:24px;left:calc(var(--L) + 128px);width:min(172px,calc(100cqw - var(--L) - 140px));height:148px;border-radius:8px;border:1px solid var(--line);background:var(--code);padding:14px 10px;font:11px/1.65 var(--mono);color:var(--fg);animation:outin 6s infinite}
 .out .l{display:block;white-space:pre;animation:wipe 6s infinite backwards}
 .out .l:nth-child(2){animation-delay:.12s}.out .l:nth-child(3){animation-delay:.24s}.out .l:nth-child(4){animation-delay:.36s}
 .out .c{color:var(--muted)}
-.note{position:absolute;right:20px;top:182px;width:172px;font-size:11px;line-height:1.35;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:9px;animation:note 6s infinite}
+.note{position:absolute;left:calc(var(--L) + 128px);top:182px;width:min(172px,calc(100cqw - var(--L) - 140px));font-size:11px;line-height:1.35;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:9px;animation:note 6s infinite}
 .note b{display:block;font-weight:600}
 .dock{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;padding:9px 12px;border-radius:18px;background:color-mix(in srgb,var(--fg) 14%,var(--card));border:1px solid var(--line)}
 .dock i{width:42px;height:42px;border-radius:10px;background:var(--line);display:block}
 .dock i.me{background:none;display:grid;place-items:center;animation:hop 6s infinite}
 .dock i.me img{width:52px;height:52px;max-width:none;margin:-5px;display:block}
+.tip{position:absolute;left:var(--L);top:182px;padding:3px 10px;border-radius:999px;background:var(--hi);color:#12324A;font:600 11px/1.5 var(--mono);pointer-events:none}
+.trail{position:absolute;left:var(--L);top:24px;width:300px;height:260px;pointer-events:none;overflow:visible}
+.trail path{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
+.trail .d{stroke-dasharray:3 6}
+.stage.manual .tip,.stage.manual .trail{display:none}
+@container (max-width:340px){.out{padding:14px 8px}}
 .stage.paused *,.stage.off *{animation-play-state:paused!important}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .stagebar{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:6px}
@@ -110,7 +116,7 @@ button.copy:hover{border-color:var(--accent)}
 .stage.manual.done .out,.stage.manual.done .out .l,.stage.manual.done .note,.stage.manual.done .dock i.me{animation:none}
 .stage.manual.done .out,.stage.manual.done .note{opacity:1}
 /* 6s loop. Beats: lift 0.5s, travel 0.75s, absorb 1.45s, spring 1.5s, wipe 1.9s, notify 2.6s, hold, fade 5.4s */
-@keyframes flyx{0%,12.5%{transform:translateX(0);animation-timing-function:cubic-bezier(.25,.6,.2,1)}24.2%,100%{transform:translateX(calc(50cqw - 76px))}}
+@keyframes flyx{0%,12.5%{transform:translateX(0);animation-timing-function:cubic-bezier(.25,.6,.2,1)}24.2%,100%{transform:translateX(calc(50cqw - var(--L) - 56px))}}
 @keyframes flyy{
   0%,8.3%{opacity:0;transform:none}
   9%{opacity:1;transform:none;animation-timing-function:var(--out)}
@@ -139,7 +145,7 @@ mark{color:var(--fg);background:linear-gradient(transparent 52%,color-mix(in srg
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) mark{--mk:26%}}
 :root[data-theme="dark"] mark{--mk:26%}
 .ico{width:14px;height:14px;flex:none}
-.ctl{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--muted);font:500 14px var(--sans);cursor:pointer}
+.ctl{display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex:none;min-height:44px;padding:0 12px;border:0;border-radius:8px;background:none;color:var(--muted);font:500 14px var(--sans);cursor:pointer}
 .ctl:hover{color:var(--fg);background:var(--code)}
 section{padding:64px 0;border-top:1px solid var(--line)}
 h2{font-size:clamp(26px,3.4vw,34px);font-weight:800;letter-spacing:-.03em;line-height:1.15;margin:0 0 10px}
@@ -247,6 +253,8 @@ footer a:hover{color:var(--fg);text-decoration:underline}
           <div class="fly" aria-hidden="true"><div class="page ghost"><b class="h"></b><b></b><b></b><b class="s"></b><b></b></div></div>
           <div class="out"><span class="l"># report</span><span class="l c">&lt;!-- page 1 (text) --&gt;</span><span class="l">Q3 Summary</span><span class="l">Revenue grew 12%</span></div>
           <div class="note"><b>MDrop</b>Conversion complete</div>
+          <svg class="trail" viewBox="0 0 300 260" aria-hidden="true"><path class="d" d="M34 178C34 228 74 248 108 248"/><path d="M101 243L109 248L101 253"/></svg>
+          <span class="tip" aria-hidden="true">drag me</span>
           <div class="dock"><i></i><i></i><i class="me"><img src="mdrop-icon.svg" alt="" width="52" height="52"></i><i></i><i></i></div>
         </div>
         <p class="sr" id="status" role="status"></p>
@@ -396,12 +404,14 @@ Signed by the board on 14 March.</pre>
   var st=document.getElementById('stage'),p=document.getElementById('pause'),pdf=document.getElementById('pdf'),hint=document.getElementById('hint');
   var dock=st.querySelector('.dock i.me'),status=document.getElementById('status'),still=matchMedia('(prefers-reduced-motion:reduce)'),coarse=matchMedia('(pointer:coarse)').matches;
   var sx=0,sy=0,dx=0,dy=0,drag=false,busy=false,doneT,backT;
-  if(coarse)hint.textContent='This is a Mac app. Open this page on your Mac to try the drag.';
+  var hintIdle=coarse?'This is a Mac app. Open this page on your Mac to try the drag.':'Try it: drag the PDF onto the icon.';
+  function setHint(t){hint.textContent=t}
+  setHint(hintIdle);
   function ms(n){return still.matches?0:n}
   function spring(){return getComputedStyle(st).getPropertyValue('--spring').trim()||'ease-out'}
   function manual(on){
     st.classList.toggle('manual',on);
-    if(on){st.classList.remove('paused');ctl(p,'replay','Play auto demo')}
+    if(on){st.classList.remove('paused');ctl(p,'replay','Replay demo')}
     else ctl(p,'pause','Pause demo');
   }
   function reset(){clearTimeout(doneT);clearTimeout(backT);status.textContent='';st.classList.remove('play','done');pdf.getAnimations().forEach(function(a){a.cancel()});pdf.style.transform='';busy=false}
@@ -421,6 +431,7 @@ Signed by the board on 14 March.</pre>
     fly.onfinish=function(){
       st.classList.add('play');
       status.textContent='MDrop: report.md saved next to report.pdf. Conversion complete.';
+      setHint('It worked: report.md landed next to report.pdf. Drag the PDF again, or replay the demo.');
       doneT=setTimeout(function(){st.classList.add('done')},ms(1800));
       backT=setTimeout(function(){
         pdf.getAnimations().forEach(function(x){x.cancel()});
@@ -432,7 +443,7 @@ Signed by the board on 14 March.</pre>
   }
   pdf.addEventListener('pointerdown',function(e){
     if(busy||e.button>0||e.pointerType==='touch')return;
-    manual(true);reset();drag=true;sx=e.clientX;sy=e.clientY;dx=dy=0;
+    manual(true);reset();setHint('Now drop it on the MDrop icon.');drag=true;sx=e.clientX;sy=e.clientY;dx=dy=0;
     pdf.setPointerCapture(e.pointerId);pdf.classList.add('dragging');
   });
   pdf.addEventListener('pointermove',function(e){
@@ -446,15 +457,15 @@ Signed by the board on 14 March.</pre>
     drag=false;pdf.classList.remove('dragging');
     var hit=!cancelled&&overDock(),from=pdf.style.transform||'none';
     dock.classList.remove('over');
-    if(hit)convert(from);else snapBack(from);
+    if(hit)convert(from);else{snapBack(from);setHint(hintIdle)}
   }
   pdf.addEventListener('pointerup',function(){release(false)});
   pdf.addEventListener('pointercancel',function(){release(true)});
   pdf.addEventListener('keydown',function(e){
-    if((e.key==='Enter'||e.key===' ')&&!busy){e.preventDefault();manual(true);reset();dx=dy=0;convert('none')}
+    if((e.key==='Enter'||e.key===' ')&&!busy){e.preventDefault();manual(true);reset();setHint('Converting...');dx=dy=0;convert('none')}
   });
   p.addEventListener('click',function(){
-    if(st.classList.contains('manual')){reset();manual(false);return}
+    if(st.classList.contains('manual')){reset();manual(false);setHint(hintIdle);return}
     var on=st.classList.toggle('paused');
     ctl(p,on?'play':'pause',on?'Play demo':'Pause demo');
   });
