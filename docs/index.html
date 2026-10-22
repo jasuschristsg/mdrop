@@ -152,6 +152,13 @@ details>div p{margin:0 0 10px}
 .who{margin-top:18px;color:var(--fg)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) mark{--mk:26%}}
 :root[data-theme="dark"] mark{--mk:26%}
+@keyframes capin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.vid{margin:0;max-width:600px}
+.vid video{display:block;width:100%;height:auto;aspect-ratio:1200/1128;border-radius:14px;border:1px solid var(--line);background:var(--card)}
+.vbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px}
+.cap{margin:0;font-size:15px;font-weight:600}
+.cap.in{animation:capin .35s cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:reduce){.cap.in{animation:none}}
 section{padding:56px 0;border-top:1px solid var(--line)}
 h2{font-size:28px;letter-spacing:-.025em;margin:0 0 8px}
 .sub{color:var(--muted);margin:0 0 28px;max-width:38em}
@@ -237,6 +244,17 @@ cd mdrop &amp;&amp; ./install.sh</code>
         <div class="card"><span class="num">2</span><h3>It reads</h3><p>If a page has real text, MDrop copies it. If a page is just a picture, like a scan, it reads the picture with Tesseract OCR instead.</p></div>
         <div class="card"><span class="num">3</span><h3>You get a file</h3><p>A <code>.md</code> file with the same name appears next to each PDF, and a notification tells you it's done.</p></div>
       </div>
+    </section>
+
+    <section id="see">
+      <h2>On a real Mac</h2>
+      <p class="sub">Dragging a PDF onto the icon, then the converted file showing up next to it. Recorded on my Mac.</p>
+      <figure class="vid">
+        <video id="demo" muted loop playsinline preload="none" poster="demo-poster.jpg" aria-label="Screen recording: sample-document.pdf is dragged from a Finder window onto the MDrop icon in the Dock. A moment later, sample-document.md appears next to the PDF.">
+          <source src="demo.mp4" type="video/mp4">
+        </video>
+        <div class="vbar"><p class="cap in" id="cap" aria-hidden="true">Drag the PDF toward the Dock</p><button class="copy pause" id="vpause" type="button">Pause video</button></div>
+      </figure>
     </section>
 
     <section>
@@ -424,6 +442,26 @@ cd mdrop</code><button class="copy" type="button">Copy</button></div>
   });
   if('IntersectionObserver' in window){
     new IntersectionObserver(function(e){st.classList.toggle('off',!e[0].isIntersecting)}).observe(st);
+  }
+  var v=document.getElementById('demo'),cap=document.getElementById('cap'),vp=document.getElementById('vpause');
+  if(v){
+    var steps=[[0,'Drag the PDF toward the Dock'],[1.4,'Drop it on the MDrop icon'],[3.6,'A .md file appears next to it']],cur=-1;
+    v.addEventListener('timeupdate',function(){
+      var i=0;for(var k=0;k<steps.length;k++){if(v.currentTime>=steps[k][0])i=k}
+      if(i!==cur){cur=i;cap.textContent=steps[i][1];cap.classList.remove('in');void cap.offsetWidth;cap.classList.add('in')}
+    });
+    if(still.matches){v.controls=true;vp.hidden=true}
+    else if('IntersectionObserver' in window){
+      var userPaused=false;
+      new IntersectionObserver(function(e){
+        if(e[0].isIntersecting){v.preload='auto';if(!userPaused){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})}}
+        else v.pause();
+      },{threshold:0.5}).observe(v);
+      vp.addEventListener('click',function(){
+        if(v.paused){userPaused=false;v.play();vp.textContent='Pause video'}
+        else{userPaused=true;v.pause();vp.textContent='Play video'}
+      });
+    }else{v.controls=true;vp.hidden=true}
   }
 })();
 </script>
